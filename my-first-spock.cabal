@@ -45,6 +45,7 @@ executable my-first-spock-exe
       Spock
     , aeson
     , base
+    , bytestring
     , http-types
     , monad-logger
     , persistent

@@ -43,6 +43,7 @@ executables:
     - persistent-postgresql
     - persistent-template
     - http-types
+    - bytestring
 
 tests:
   my-first-spock-test:

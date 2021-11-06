@@ -38,11 +38,11 @@ import Web.Spock.Config
       PoolOrConn(PCPool) )
 
 import Data.Aeson ( object, Value(String), KeyValue((.=)) )
-import Data.Monoid ((<>))
-import Data.Text (Text, pack)
+import Data.Text ( Text )
 import GHC.Generics ()
 
-import Network.HTTP.Types (Status, status201, status204, status400, status404)
+import Network.HTTP.Types
+    ( status404, status400, status201, Status )
 
 import Control.Monad.Logger (LoggingT, runStdoutLoggingT)
 import Database.Persist ( selectList, SelectOpt(Asc) )
@@ -50,8 +50,6 @@ import Database.Persist.Postgresql
     ( runSqlPool,
       runSqlConn,
       runMigration,
-      selectList,
-      SelectOpt(Asc),
       SqlPersistT,
       BackendKey(SqlBackendKey),
       SqlBackend,
@@ -59,6 +57,9 @@ import Database.Persist.Postgresql
 import Database.Persist.TH
     ( mkMigrate, mkPersist, persistLowerCase, share, sqlSettings )
 import qualified Database.Persist as P
+import Data.ByteString
+import Data.ByteString.Internal
+import System.Environment
 
 share [mkPersist sqlSettings, mkMigrate "migrateAll"] [persistLowerCase|
 Person json -- The json keyword will make Persistent generate sensible to ToJSON and FromJSON instances for us.
@@ -97,7 +98,8 @@ commonErrorJson status =
 
 main :: IO ()
 main = do
-  pool <- runStdoutLoggingT $ createPostgresqlPool "postgresql://localhost:5432/spock?user=postgres&password=example" 5
+  dbUrl <- getEnv "DB_URL"
+  pool <- runStdoutLoggingT $ createPostgresqlPool (pack (Prelude.map c2w dbUrl)) 5
   baseConfig <- defaultSpockCfg () (PCPool pool) ()
   let spockCfg = SpockCfg (spc_initialState baseConfig) (spc_database baseConfig) (spc_sessionCfg baseConfig) (spc_maxRequestSize baseConfig) commonErrorJson (spc_logError baseConfig) (spc_csrfProtection baseConfig) (spc_csrfHeaderName baseConfig) (spc_csrfPostName baseConfig)
   runStdoutLoggingT $ runSqlPool (do runMigration migrateAll) pool
