@@ -40,7 +40,7 @@ executables:
     - text
     - monad-logger
     - persistent
-    - persistent-sqlite
+    - persistent-postgresql
     - persistent-template
     - http-types
 
